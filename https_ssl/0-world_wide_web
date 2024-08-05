@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# print domains and subdomains
+
+print_domain_subdomain () {
+    domain=$1
+    subdomain=$2
+    result=$(dig "$subdomain.$domain" +short)
+    if [[ -z "$result" ]]; then
+        echo "The subdomain $subdomain.$domain does not exist"
+        return
+    fi
+    destination=$(echo "$result" | head -n 1)
+    if [[ "$destination" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        record_type="A"
+    elif [[ "$destination" =~ ^[a-fA-F0-9:]+$ ]]; then
+        record_type="AAAA"
+    else
+        record_type="CNAME"
+    fi
+    echo "The subdomain $subdomain is a $record_type record and points to $destination"
+}
+
+if [ "$#" -eq 2 ]; then
+    print_domain_subdomain "$1" "$2"
+else
+    print_domain_subdomain "$1" "www"
+    print_domain_subdomain "$1" "lb-01"
+    print_domain_subdomain "$1" "web-01"
+    print_domain_subdomain "$1" "web-02"
+fi
